@@ -129,9 +129,12 @@ class _GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = colors != null
+        ? null
+        : AppColors.accent;
     final gradient = colors != null
         ? LinearGradient(colors: colors!)
-        : AppColors.primaryGradient;
+        : null;
 
     return Material(
       color:        Colors.transparent,
@@ -139,11 +142,11 @@ class _GradientButton extends StatelessWidget {
       child: InkWell(
         onTap:        onPressed,
         borderRadius: AppRadius.button,
-        splashColor:  AppColors.primaryFixedVariant.withOpacity(0.3),
+        splashColor:  AppColors.accent.withOpacity(0.2),
         child: Ink(
           decoration: BoxDecoration(
-            gradient:     onPressed != null ? gradient : null,
-            color:        onPressed == null ? AppColors.surfaceHigh : null,
+            gradient:     gradient,
+            color:        onPressed == null ? AppColors.borderStrong : bgColor,
             borderRadius: AppRadius.button,
           ),
           child: Padding(padding: padding, child: child),

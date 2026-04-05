@@ -34,7 +34,7 @@ class AppFormSection extends StatelessWidget {
         ],
         ...children.map((child) => Padding(
           padding: EdgeInsets.only(bottom: spacing),
-          child: child,
+          child: SizedBox(width: double.infinity, child: child),
         )),
       ],
     );
@@ -98,15 +98,19 @@ class AppFieldLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
+        mainAxisSize: MainAxisSize.max,
         children: [
           Text(label, style: AppTypography.labelMd),
-          if (isRequired)
-            Text(' *', style: AppTypography.labelMd.copyWith(color: AppColors.error))
-          else
-            Text(
-              '  (opcional)',
-              style: AppTypography.caption.copyWith(color: AppColors.textDisabled),
+          const SizedBox(width: AppSpacing.xs),
+          Container(
+            width:  6,
+            height: 6,
+            margin: const EdgeInsets.only(top: 2), // Ajuste sutil de alineación vertical
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isRequired ? AppColors.error : AppColors.info,
             ),
+          ),
           if (hint != null) ...[
             const SizedBox(width: AppSpacing.xs),
             Tooltip(

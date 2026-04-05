@@ -22,13 +22,16 @@ class UserDetailModal extends StatefulWidget {
     required UsuarioModel usuario,
     required VoidCallback onEditar,
   }) {
-    return AppSideSheet.show(
+    return AppModal.show(
       context:     context,
       title:       usuario.nombre,
       subtitle:    usuario.email,
       showActions: false,
-      width:       520,
-      child: UserDetailModal(usuario: usuario, onEditar: onEditar),
+      width:       600,
+      child: SizedBox(
+        height: 500,
+        child: UserDetailModal(usuario: usuario, onEditar: onEditar),
+      ),
     );
   }
 

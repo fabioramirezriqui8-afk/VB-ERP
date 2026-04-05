@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show DateTimeRange;
 import '../data/users_repository.dart';
 import '../domain/user_model.dart';
+import '../../../../shared/widgets/filters/app_filter_def.dart';
 
 class UsuariosController extends ChangeNotifier {
   UsuariosController({UsersRepository? repository})
@@ -11,15 +13,15 @@ class UsuariosController extends ChangeNotifier {
   List<UsuarioModel> _todos     = [];
   List<UsuarioModel> _filtrados = [];
   String  _busqueda    = '';
-  String? _filtroEstado;
+  List<AppFilterValue> _filtros = [];
   bool    _isLoading   = false;
   String? _error;
 
-  List<UsuarioModel> get filtrados    => _filtrados;
-  List<UsuarioModel> get todos        => _todos;
-  String?            get filtroEstado => _filtroEstado;
-  bool               get isLoading    => _isLoading;
-  String?            get error        => _error;
+  List<UsuarioModel>   get filtrados => _filtrados;
+  List<UsuarioModel>   get todos     => _todos;
+  List<AppFilterValue> get filtros   => _filtros;
+  bool                 get isLoading => _isLoading;
+  String?              get error     => _error;
 
   Future<void> loadUsers() async {
     _isLoading = true;
@@ -41,14 +43,14 @@ class UsuariosController extends ChangeNotifier {
     _aplicarFiltros();
   }
 
-  void filtrarEstado(String? estado) {
-    _filtroEstado = estado;
+  void aplicarFiltros(List<AppFilterValue> valores) {
+    _filtros = valores;
     _aplicarFiltros();
   }
 
   void limpiarFiltros() {
-    _busqueda     = '';
-    _filtroEstado = null;
+    _busqueda = '';
+    _filtros  = [];
     _aplicarFiltros();
   }
 
@@ -80,12 +82,28 @@ class UsuariosController extends ChangeNotifier {
 
   void _aplicarFiltros() {
     _filtrados = _todos.where((u) {
-      final matchQ = _busqueda.isEmpty ||
-          u.nombre.toLowerCase().contains(_busqueda.toLowerCase()) ||
-          u.email.toLowerCase().contains(_busqueda.toLowerCase());
-      final matchE = _filtroEstado == null ||
-          (_filtroEstado == 'Activo' ? u.activo : !u.activo);
-      return matchQ && matchE;
+      // Búsqueda por texto
+      if (_busqueda.isNotEmpty) {
+        final q = _busqueda.toLowerCase();
+        if (!u.nombre.toLowerCase().contains(q) &&
+            !u.email.toLowerCase().contains(q)) return false;
+      }
+
+      // Filtros del panel
+      for (final f in _filtros) {
+        switch (f.key) {
+          case 'estado':
+            final activo = f.rawValue == 'Activo';
+            if (u.activo != activo) return false;
+          case 'fecha':
+            if (f.rawValue is DateTimeRange) {
+              final range = f.rawValue as DateTimeRange;
+              if (u.creadoEn.isBefore(range.start) ||
+                  u.creadoEn.isAfter(range.end)) return false;
+            }
+        }
+      }
+      return true;
     }).toList();
     notifyListeners();
   }

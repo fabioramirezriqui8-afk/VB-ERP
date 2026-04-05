@@ -50,7 +50,7 @@ class _AppShellState extends State<AppShell> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: cs.surfaceContainerLowest,
+      backgroundColor: Colors.white,
       drawer: _isMobile ? _buildDrawer() : null,
       body: Row(
         children: [

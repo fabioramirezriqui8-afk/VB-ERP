@@ -22,13 +22,16 @@ class RoleDetailModal extends StatefulWidget {
     required RolModel rol,
     required VoidCallback onEditar,
   }) {
-    return AppSideSheet.show(
+    return AppModal.show(
       context:     context,
       title:       rol.nombre.replaceAll('_', ' '),
       subtitle:    rol.descripcion,
       showActions: false,
-      width:       520,
-      child: RoleDetailModal(rol: rol, onEditar: onEditar),
+      width:       600,
+      child: SizedBox(
+        height: 500,
+        child: RoleDetailModal(rol: rol, onEditar: onEditar),
+      ),
     );
   }
 

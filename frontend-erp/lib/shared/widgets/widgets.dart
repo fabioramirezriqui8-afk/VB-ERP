@@ -30,9 +30,12 @@ export 'layout/app_tab_bar.dart';
 
 // ── Table ─────────────────────────────────────────────────────────────────────
 export 'table/app_table.dart';
+export 'table/app_table_actions.dart';
 
 // ── Filters ───────────────────────────────────────────────────────────────────
 export 'filters/app_filter_bar.dart';
+export 'filters/app_filter_def.dart';
+export 'filters/app_filter_panel.dart';
 
 // ── Modals ────────────────────────────────────────────────────────────────────
 export 'modals/app_modal.dart';

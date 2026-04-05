@@ -20,9 +20,9 @@ class SidebarItem {
   final String label;
   final IconData icon;
   final String? route;
-  final int? badge;           // número en badge rojo (ej: notificaciones)
+  final int? badge;
   final List<SidebarItem> children;
-  final String? requiredPermission; // ocultar si el usuario no tiene el permiso
+  final String? requiredPermission;
 
   bool get hasChildren => children.isNotEmpty;
 }
@@ -47,8 +47,8 @@ class AppSidebar extends StatefulWidget {
   final List<SidebarItem> items;
   final String currentRoute;
   final void Function(String route) onNavigate;
-  final Widget? header;   // logo / nombre de empresa
-  final Widget? footer;   // perfil de usuario
+  final Widget? header;
+  final Widget? footer;
   final List<String> userPermissions;
   final double width;
   final double collapsedWidth;
@@ -65,7 +65,6 @@ class _AppSidebarState extends State<AppSidebar> {
   @override
   void initState() {
     super.initState();
-    // Expande automáticamente el grupo que contiene la ruta activa
     for (final item in widget.items) {
       if (item.hasChildren &&
           item.children.any((c) => c.route == widget.currentRoute)) {
@@ -75,37 +74,28 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   bool _hasAccess(SidebarItem item) {
-    // Si es un grupo, es visible solo si al menos uno de sus hijos es accesible
-    if (item.hasChildren) {
-      return item.children.any(_hasAccess);
-    }
-
+    if (item.hasChildren) return item.children.any(_hasAccess);
     if (item.requiredPermission == null) return true;
     return widget.userPermissions.contains(item.requiredPermission);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bg = Theme.of(context).colorScheme.surface;
-    final w      = widget.isCollapsed ? widget.collapsedWidth : widget.width;
+    final w = widget.isCollapsed ? widget.collapsedWidth : widget.width;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeInOut,
       width: w,
-      color: bg,
+      color: AppColors.sidebarBg,
       child: Column(
         children: [
-          // ── Header ─────────────────────────────────────────────────────────
           _SidebarHeader(
             child:       widget.header,
             isCollapsed: widget.isCollapsed,
             onToggle:    widget.onToggleCollapse,
           ),
-
-          const Divider(color: Colors.white12, height: 1),
-
-          // ── Items ───────────────────────────────────────────────────────────
+          const Divider(color: Color(0xFF1E293B), height: 1),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -113,16 +103,16 @@ class _AppSidebarState extends State<AppSidebar> {
                   .where(_hasAccess)
                   .map((item) => item.hasChildren
                       ? _SidebarGroup(
-                          item:        item,
-                          isCollapsed: widget.isCollapsed,
-                          isExpanded:  _expanded.contains(item.id),
-                          currentRoute: widget.currentRoute,
+                          item:            item,
+                          isCollapsed:     widget.isCollapsed,
+                          isExpanded:      _expanded.contains(item.id),
+                          currentRoute:    widget.currentRoute,
                           onToggle: () => setState(() {
                             _expanded.contains(item.id)
                                 ? _expanded.remove(item.id)
                                 : _expanded.add(item.id);
                           }),
-                          onNavigate:  widget.onNavigate,
+                          onNavigate:      widget.onNavigate,
                           userPermissions: widget.userPermissions,
                         )
                       : _SidebarTile(
@@ -136,10 +126,8 @@ class _AppSidebarState extends State<AppSidebar> {
                   .toList(),
             ),
           ),
-
-          // ── Footer ──────────────────────────────────────────────────────────
           if (widget.footer != null) ...[
-            const Divider(color: Colors.white12, height: 1),
+            const Divider(color: Color(0xFF1E293B), height: 1),
             widget.footer!,
           ],
         ],
@@ -167,19 +155,16 @@ class _SidebarHeader extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: isCollapsed
                   ? const SizedBox.shrink()
-                  : child ??
-                      Text(
-                        'VB-ERP',
-                        style: AppTypography.h3.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
+                  : child ?? Text(
+                      'VB-ERP',
+                      style: AppTypography.h3.copyWith(color: AppColors.accent),
+                    ),
             ),
           ),
           IconButton(
             icon: Icon(
               isCollapsed ? Icons.menu_open : Icons.menu,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              color: AppColors.sidebarText,
             ),
             onPressed: onToggle,
             tooltip: isCollapsed ? 'Expandir' : 'Colapsar',
@@ -209,23 +194,18 @@ class _SidebarTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = Theme.of(context).colorScheme.primary;
-    final textColor   = isActive ? activeColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
-    final bgColor     = isActive
-        ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-        : Colors.transparent;
+    final textColor = isActive ? AppColors.accent : AppColors.sidebarText;
+    final bgColor   = isActive ? AppColors.sidebarActive : Colors.transparent;
 
     return Tooltip(
       message: isCollapsed ? item.label : '',
       preferBelow: false,
       child: InkWell(
         onTap: onTap,
+        hoverColor: AppColors.sidebarActive,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          margin: EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical:   2,
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
           padding: EdgeInsets.symmetric(
             horizontal: isChild ? AppSpacing.xl2 : AppSpacing.md,
             vertical:   AppSpacing.md,
@@ -234,7 +214,7 @@ class _SidebarTile extends StatelessWidget {
             color:        bgColor,
             borderRadius: BorderRadius.circular(8),
             border: isActive
-                ? Border(left: BorderSide(color: activeColor, width: 2))
+                ? const Border(left: BorderSide(color: AppColors.accent, width: 2))
                 : null,
           ),
           child: Row(
@@ -298,36 +278,26 @@ class _SidebarGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveChild =
-        item.children.any((c) => c.route == currentRoute);
+    final hasActiveChild = item.children.any((c) => c.route == currentRoute);
     final filteredChildren = item.children.where(_hasAccess).toList();
     if (filteredChildren.isEmpty) return const SizedBox.shrink();
 
-    final cs = Theme.of(context).colorScheme;
-    final textColor = hasActiveChild
-        ? cs.primary
-        : cs.onSurface.withOpacity(0.6);
+    final textColor = hasActiveChild ? AppColors.accent : AppColors.sidebarText;
 
     return Column(
       children: [
-        // Cabecera del grupo
         Tooltip(
           message: isCollapsed ? item.label : '',
           preferBelow: false,
           child: InkWell(
             onTap: isCollapsed ? null : onToggle,
+            hoverColor: AppColors.sidebarActive,
             child: Container(
-              margin: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 2,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.md,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: hasActiveChild
-                    ? cs.primary.withOpacity(0.1)
-                    : Colors.transparent,
+                color: hasActiveChild ? AppColors.sidebarActive : Colors.transparent,
               ),
               child: Row(
                 children: [
@@ -342,10 +312,8 @@ class _SidebarGroup extends StatelessWidget {
                       ),
                     ),
                     Icon(
-                      isExpanded
-                          ? Icons.keyboard_arrow_down
-                          : Icons.keyboard_arrow_right,
-                      color: cs.onSurface.withOpacity(0.3),
+                      isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                      color: AppColors.sidebarText,
                       size: 18,
                     ),
                   ],
@@ -354,8 +322,6 @@ class _SidebarGroup extends StatelessWidget {
             ),
           ),
         ),
-
-        // Hijos
         if (!isCollapsed)
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
@@ -398,7 +364,7 @@ class _Badge extends StatelessWidget {
       child: Text(
         count > 99 ? '99+' : '$count',
         style: const TextStyle(
-          color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600,
+          color: AppColors.white, fontSize: 10, fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -425,38 +391,26 @@ class SidebarUserFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
+      hoverColor: AppColors.sidebarActive,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: cs.primary.withOpacity(0.2), width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: cs.primary.withOpacity(0.1),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: cs.primaryContainer,
-                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                child: avatarUrl == null
-                    ? Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          color: cs.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.accent,
+              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+              child: avatarUrl == null
+                  ? Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             if (!isCollapsed) ...[
               const SizedBox(width: AppSpacing.md),
@@ -466,19 +420,19 @@ class SidebarUserFooter extends StatelessWidget {
                   children: [
                     Text(name,
                         style: AppTypography.labelMd.copyWith(
-                          color: cs.onSurface,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis),
                     Text(_mapRole(role),
                         style: AppTypography.caption.copyWith(
-                          color: cs.onSurface.withOpacity(0.5),
+                          color: AppColors.sidebarText,
                         ),
                         overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
-              Icon(Icons.unfold_more_rounded, color: cs.onSurface.withOpacity(0.3), size: 18),
+              const Icon(Icons.unfold_more_rounded, color: AppColors.sidebarText, size: 18),
             ],
           ],
         ),
@@ -487,12 +441,12 @@ class SidebarUserFooter extends StatelessWidget {
   }
 
   String _mapRole(String roleId) {
-    switch (roleId.toLowerCase()) {
-      case 'super_admin':        return 'Administrador';
-      case 'sales_agent':       return 'Agente de Ventas';
-      case 'warehouse_operator': return 'Operador Almacén';
-      case 'admin':              return 'Administrador';
-      default:                   return roleId.replaceAll('_', ' ').toUpperCase();
-    }
+    return switch (roleId.toLowerCase()) {
+      'super_admin'        => 'Administrador',
+      'sales_agent'        => 'Agente de Ventas',
+      'warehouse_operator' => 'Operador Almacén',
+      'admin'              => 'Administrador',
+      _                    => roleId.replaceAll('_', ' ').toUpperCase(),
+    };
   }
 }

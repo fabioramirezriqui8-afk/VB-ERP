@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../domain/user_model.dart';
@@ -45,11 +46,12 @@ class _UsuariosPageState extends State<UsuariosPage> {
   }
 
   void _abrirFormulario({UsuarioModel? usuario}) {
-    AppSideSheet.show(
+    AppModal.show(
       context:     context,
       title:       usuario == null ? 'Nuevo usuario' : 'Editar usuario',
       subtitle:    usuario == null ? 'Completa los datos del nuevo usuario' : 'Modifica los datos',
       showActions: false,
+      width:       520,
       child: UserForm(
         nombre:     usuario?.nombre,
         email:      usuario?.email,
@@ -90,78 +92,45 @@ class _UsuariosPageState extends State<UsuariosPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
-        // ── Topbar de la sección ──────────────────────────────────────
-        Container(
-          width:   double.infinity,
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl2, AppSpacing.xl2, AppSpacing.xl2, AppSpacing.lg,
-          ),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            border: Border(
-              bottom: BorderSide(color: cs.outline.withOpacity(0.12)),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppBreadcrumb(items: const [
-                BreadcrumbItem(label: 'Inicio',   route: '/dashboard'),
-                BreadcrumbItem(label: 'Usuarios'),
-              ]),
-              const SizedBox(height: AppSpacing.lg),
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: AppSpacing.lg,
-                runSpacing: AppSpacing.md,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Gestión de Usuarios', style: AppTypography.h2),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        '${_ctrl.todos.length} usuarios registrados en el sistema',
-                        style: AppTypography.bodyMd.copyWith(
-                          color: cs.onSurface.withOpacity(0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppButton(
-                    label:     'Nuevo usuario',
-                    icon:      Icons.person_add_outlined,
-                    onPressed: () => _abrirFormulario(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // ── Filtros ───────────────────────────────────────────────────
+        // ── Toolbar: filtros + botón crear ───────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl2, AppSpacing.xl2, AppSpacing.xl2, 0,
+            AppSpacing.xl2, AppSpacing.lg, AppSpacing.xl2, 0,
           ),
-          child: AppFilterBar(
-            searchHint:       'Buscar por nombre o correo...',
-            searchController: _searchCtrl,
-            onSearchChanged:  _ctrl.buscar,
-            activeFilters: _ctrl.filtroEstado != null
-                ? [ActiveFilter(key: 'estado', label: 'Estado', value: _ctrl.filtroEstado!)]
-                : [],
-            onRemoveFilter: (_) { _ctrl.limpiarFiltros(); _searchCtrl.clear(); },
-            onClearAll:     ()  { _ctrl.limpiarFiltros(); _searchCtrl.clear(); },
-            onAdvancedFilter: _mostrarFiltros,
+          child: Row(
+            children: [
+              AppFilterBar(
+                  searchHint:       'Buscar por nombre o correo...',
+                  searchController: _searchCtrl,
+                  onSearchChanged:  _ctrl.buscar,
+                  filterDefs: const [
+                    AppFilterDef(
+                      key:     'estado',
+                      label:   'Estado',
+                      type:    FilterType.select,
+                      options: ['Activo', 'Inactivo'],
+                    ),
+                    AppFilterDef(
+                      key:   'fecha',
+                      label: 'Fecha de creación',
+                      type:  FilterType.dateRange,
+                    ),
+                  ],
+                  filterValues:     _ctrl.filtros,
+                  onFiltersApplied: _ctrl.aplicarFiltros,
+                  onFiltersClear:   _ctrl.limpiarFiltros,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              AppButton(
+                label:     'Nuevo usuario',
+                icon:      Icons.person_add_outlined,
+                onPressed: () => _abrirFormulario(),
+              ),
+            ],
           ),
         ),
 
@@ -215,29 +184,11 @@ class _UsuariosPageState extends State<UsuariosPage> {
                   label:     'Acciones',
                   flex:      1,
                   alignment: Alignment.center,
-                  builder:   (u) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon:      const Icon(Icons.edit_outlined, size: 18),
-                        tooltip:   'Editar',
-                        onPressed: () => _abrirFormulario(usuario: u),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          u.activo ? Icons.block_outlined : Icons.check_circle_outline,
-                          size: 18,
-                        ),
-                        tooltip:   u.activo ? 'Desactivar' : 'Activar',
-                        onPressed: () => _ctrl.toggleEstado(u),
-                      ),
-                      IconButton(
-                        icon:      const Icon(Icons.delete_outline, size: 18),
-                        color:     cs.error,
-                        tooltip:   'Eliminar',
-                        onPressed: () => _eliminar(u),
-                      ),
-                    ],
+                  builder:   (u) => AppTableActions(
+                    onEdit:   () => _abrirFormulario(usuario: u),
+                    onToggle: () => _ctrl.toggleEstado(u),
+                    isActive: u.activo,
+                    onDelete: () => _eliminar(u),
                   ),
                 ),
               ],
@@ -250,44 +201,7 @@ class _UsuariosPageState extends State<UsuariosPage> {
     );
   }
 
-  void _mostrarFiltros() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Filtrar por estado', style: AppTypography.h4),
-            const SizedBox(height: AppSpacing.lg),
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: ['Activo', 'Inactivo'].map((e) => ChoiceChip(
-                label:    Text(e),
-                selected: _ctrl.filtroEstado == e,
-                onSelected: (_) {
-                  Navigator.pop(context);
-                  _ctrl.filtrarEstado(e);
-                },
-              )).toList(),
-            ),
-            if (_ctrl.filtroEstado != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              TextButton.icon(
-                onPressed: () { Navigator.pop(context); _ctrl.limpiarFiltros(); _searchCtrl.clear(); },
-                icon:  const Icon(Icons.clear, size: 16),
-                label: const Text('Limpiar filtros'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  void _mostrarFiltros() {}
 }
 
 // ── Widgets internos ──────────────────────────────────────────────────────────
@@ -298,18 +212,17 @@ class _UserCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
         CircleAvatar(
           radius:          18,
-          backgroundColor: cs.primaryContainer,
+          backgroundColor: AppColors.accent,
           child: Text(
             usuario.nombre[0].toUpperCase(),
-            style: TextStyle(
+            style: const TextStyle(
               fontSize:   13,
               fontWeight: FontWeight.bold,
-              color:      cs.onPrimaryContainer,
+              color:      AppColors.white,
             ),
           ),
         ),
@@ -320,7 +233,7 @@ class _UserCell extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(usuario.nombre, style: AppTypography.labelMd),
-              Text(usuario.email,  style: AppTypography.caption),
+              Text(usuario.email,  style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
             ],
           ),
         ),

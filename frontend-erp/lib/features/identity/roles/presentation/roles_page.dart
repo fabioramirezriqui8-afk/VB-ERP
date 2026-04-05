@@ -45,11 +45,12 @@ class _RolesPageState extends State<RolesPage> {
   }
 
   void _abrirFormulario({RolModel? rol}) {
-    AppSideSheet.show(
+    AppModal.show(
       context:     context,
       title:       rol == null ? 'Nuevo rol' : 'Editar rol',
       subtitle:    rol == null ? 'Define nombre y permisos del nuevo rol' : 'Modifica los permisos',
       showActions: false,
+      width:       520,
       child: RolForm(
         nombre:                rol?.nombre,
         descripcion:           rol?.descripcion,
