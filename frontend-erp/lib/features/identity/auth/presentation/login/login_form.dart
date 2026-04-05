@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../shared/widgets/widgets.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
 
@@ -113,16 +114,21 @@ class _LoginFormState extends State<LoginForm> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color:        AppColors.errorLight,
-                borderRadius: BorderRadius.circular(8),
-                border:       Border.all(
-                  color: AppColors.error.withOpacity(0.3),
+                color:        AppColors.errorSurface,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: AppColors.error.withOpacity(0.20),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color:      AppColors.errorGlow,
+                    blurRadius: 12,
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 16, color: AppColors.error),
+                  Icon(Icons.error_outline, size: 16, color: AppColors.error),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(widget.errorMessage!,

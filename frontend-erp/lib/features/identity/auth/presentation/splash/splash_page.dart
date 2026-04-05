@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_typography.dart';
+import '../../../../../core/config/env.dart';
 import '../../data/auth_repository.dart';
 import '../../data/auth_storage.dart';
 import '../../domain/auth_model.dart';
@@ -30,7 +31,7 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _checkSession() async {
     await Future.delayed(const Duration(milliseconds: 800)); // animación mínima
     final repo   = AuthRepository(
-      baseUrl: 'http://localhost:3000',
+      baseUrl: Env.apiBaseUrl,
       storage: AuthStorage(),
     );
     final tokens = await repo.restoreSession();

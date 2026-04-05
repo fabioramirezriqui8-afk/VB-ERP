@@ -198,7 +198,7 @@ class AppConfirmDialog extends StatelessWidget {
                     child: AppButton(
                       label:   cancelLabel,
                       onPressed: onCancel,
-                      variant: AppButtonVariant.outline,
+                      variant: AppButtonVariant.secondary,
                       isFullWidth: true,
                     ),
                   ),

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import '../../domain/auth_model.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../data/auth_repository.dart';
-import '../../data/auth_mock_repository.dart';
 
 /// Estado del login — solo lógica, cero widgets
 enum LoginStatus { idle, loading, success, error }
@@ -36,7 +35,7 @@ class LoginController extends ChangeNotifier {
     } on AuthException catch (e) {
       _error  = e.message;
       _status = LoginStatus.error;
-    } on AuthMockException catch (e) {
+    } on AuthException catch (e) {
       _error  = e.message;
       _status = LoginStatus.error;
     } catch (_) {

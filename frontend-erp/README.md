@@ -15,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+Email	Contraseña	Rol
+admin@vb-erp.com	Admin1234!	super_admin — acceso total
+ventas@vb-erp.com	123456	sales_agent — solo ventas/CRM
+almacen@vb-erp.com	123456	warehouse_operator — solo inventario

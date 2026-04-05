@@ -1,65 +1,108 @@
 import 'package:flutter/material.dart';
 
+/// Paleta "The Sovereign Command" — Chromatic Depth
+/// Basada en obsidian profundo + violetas reales
 abstract class AppColors {
-  // ── Brand — Índigo/Violeta ─────────────────────────────────────────────────
-  static const Color primary        = Color(0xFF6366F1); // índigo vibrante
-  static const Color primaryLight   = Color(0xFF818CF8);
-  static const Color primaryDark    = Color(0xFF4F46E5);
-  static const Color primaryGlow    = Color(0x336366F1); // para sombras/glow
 
-  static const Color secondary      = Color(0xFF8B5CF6); // violeta
-  static const Color secondaryLight = Color(0xFFA78BFA);
-  static const Color secondaryDark  = Color(0xFF7C3AED);
+  // ── Superficies (capas físicas apiladas) ───────────────────────────────────
+  static const Color surfaceLowest   = Color(0xFF0E0E0E); // base más profunda
+  static const Color surfaceLow      = Color(0xFF1C1B1B); // áreas de trabajo
+  static const Color surface         = Color(0xFF232323); // superficie base
+  static const Color surfaceHigh     = Color(0xFF2A2A2A); // módulos activos
+  static const Color surfaceHighest  = Color(0xFF353534); // cards anidadas
+  static const Color surfaceBright   = Color(0xFF3D3C3C); // hover states
 
-  static const Color accent         = Color(0xFF06B6D4); // cyan para highlights
+  // ── Brand — Violeta Real ───────────────────────────────────────────────────
+  static const Color primary             = Color(0xFFD7BAFF); // highlight principal
+  static const Color primaryContainer    = Color(0xFF4A148C); // gradiente inicio
+  static const Color primaryFixedVariant = Color(0xFF5A2A9C); // gradiente fin
+  static const Color onPrimary           = Color(0xFF1A0040); // texto sobre primary
+  static const Color onPrimaryContainer  = Color(0xFFEADDFF); // texto sobre container
 
-  // ── Semánticos ─────────────────────────────────────────────────────────────
-  static const Color success        = Color(0xFF10B981);
-  static const Color successLight   = Color(0xFF064E3B);
-  static const Color successText    = Color(0xFF6EE7B7);
+  static const Color secondary           = Color(0xFFB0BEC5); // texto secundario
+  static const Color secondaryContainer  = Color(0xFF2D3748);
+  static const Color onSecondary         = Color(0xFF1A2332);
 
-  static const Color warning        = Color(0xFFF59E0B);
-  static const Color warningLight   = Color(0xFF451A03);
+  // ── Semánticos (sofisticados, no agresivos) ────────────────────────────────
+  static const Color success        = Color(0xFF4CAF82);
+  static const Color successSurface = Color(0xFF0D2B1E);
+  static const Color successText    = Color(0xFF86EFAC);
+
+  static const Color warning        = Color(0xFFE8A838);
+  static const Color warningSurface = Color(0xFF2B1E08);
   static const Color warningText    = Color(0xFFFCD34D);
 
-  static const Color error          = Color(0xFFEF4444);
-  static const Color errorLight     = Color(0xFF450A0A);
-  static const Color errorText      = Color(0xFFFCA5A5);
+  static const Color error          = Color(0xFFFFB4AB); // sofisticado, no rojo agresivo
+  static const Color errorSurface   = Color(0xFF2B0A08);
+  static const Color errorGlow      = Color(0x33FFB4AB);
 
-  static const Color info           = Color(0xFF06B6D4);
-  static const Color infoLight      = Color(0xFF083344);
-  static const Color infoText       = Color(0xFF67E8F9);
-
-  // ── Superficies oscuras (tema principal) ───────────────────────────────────
-  static const Color background     = Color(0xFF09090B); // casi negro
-  static const Color surface        = Color(0xFF111113); // cards
-  static const Color surfaceElevated= Color(0xFF18181B); // modales, dropdowns
-  static const Color surfaceHover   = Color(0xFF1F1F23); // hover states
-  static const Color border         = Color(0xFF27272A); // bordes sutiles
-  static const Color borderStrong   = Color(0xFF3F3F46); // bordes visibles
-
-  // ── Sidebar ────────────────────────────────────────────────────────────────
-  static const Color sidebarBg      = Color(0xFF0C0C0E);
-  static const Color sidebarActive  = Color(0xFF1A1A2E); // fondo item activo
-  static const Color sidebarBorder  = Color(0xFF1F1F23);
+  static const Color info           = Color(0xFF67C8E8);
+  static const Color infoSurface    = Color(0xFF0A1F2B);
 
   // ── Texto ──────────────────────────────────────────────────────────────────
-  static const Color textPrimary    = Color(0xFFFAFAFA); // blanco suave
-  static const Color textSecondary  = Color(0xFFA1A1AA); // gris medio
-  static const Color textMuted      = Color(0xFF71717A); // gris apagado
-  static const Color textDisabled   = Color(0xFF52525B);
-  static const Color textInverse    = Color(0xFF09090B);
+  static const Color onSurface      = Color(0xFFE5E2E1); // máximo brillo (no blanco puro)
+  static const Color textSecondary  = Color(0xFFB0BEC5); // info no esencial
+  static const Color textMuted      = Color(0xFF6B7280);
+  static const Color textDisabled   = Color(0xFF4B5563);
 
-  // ── Superficies claras (modo light — opcional) ─────────────────────────────
-  static const Color backgroundLight     = Color(0xFFFAFAFA);
-  static const Color surfaceLight        = Color(0xFFFFFFFF);
-  static const Color surfaceVariantLight = Color(0xFFF4F4F5);
-  static const Color borderLight         = Color(0xFFE4E4E7);
-  static const Color textPrimaryLight    = Color(0xFF09090B);
-  static const Color textSecondaryLight  = Color(0xFF71717A);
+  // ── Bordes (regla "Ghost Border") ──────────────────────────────────────────
+  // Nunca usar bordes sólidos de 1px — solo como fallback de accesibilidad
+  static const Color outlineVariant = Color(0xFF3F3F46); // base para 15% opacity
+  static Color get ghostBorder => outlineVariant.withOpacity(0.15);
+  static Color get softBorder   => outlineVariant.withOpacity(0.25);
+
+  // ── Glassmorphism ──────────────────────────────────────────────────────────
+  static Color get glassSurface => surface.withOpacity(0.60);
+  static Color get glassModal   => surfaceHigh.withOpacity(0.70);
+
+  // ── Gradientes ─────────────────────────────────────────────────────────────
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primaryContainer, primaryFixedVariant],
+    begin:  Alignment.topLeft,
+    end:    Alignment.bottomRight,
+  );
+
+  static const LinearGradient backgroundGradient = LinearGradient(
+    colors: [Color(0xFF0E0E0E), Color(0xFF1A1040), Color(0xFF0E0E0E)],
+    begin:  Alignment.topLeft,
+    end:    Alignment.bottomRight,
+  );
+
+  // ── Sombras con tinte violeta ──────────────────────────────────────────────
+  static List<BoxShadow> get floatingShadow => [
+    const BoxShadow(
+      color:       Color(0x66000000),
+      blurRadius:  48,
+      offset:      Offset(0, 24),
+    ),
+    const BoxShadow(
+      color:       Color(0x1A4A148C), // tinte violeta del primary
+      blurRadius:  12,
+    ),
+  ];
+
+  // ── Sidebar ────────────────────────────────────────────────────────────────
+  static const Color sidebarBg     = surfaceLowest;
+  static const Color sidebarActive = Color(0xFF1E1040); // violeta oscuro sutil
 
   // ── Utilidades ─────────────────────────────────────────────────────────────
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF000000);
+  static const Color white       = Color(0xFFFFFFFF);
+  static const Color black       = Color(0xFF000000);
   static const Color transparent = Colors.transparent;
+
+  // ── Aliases de compatibilidad ──────────────────────────────────────────────
+  static const Color background        = surfaceLowest;
+  static const Color border            = outlineVariant;
+  static const Color borderStrong      = surfaceBright;
+  static const Color surfaceElevated   = surfaceHigh;
+  static const Color surfaceHover      = surfaceBright;
+  static const Color surfaceVariantLight = Color(0xFFF4F4F5);
+  static const Color textPrimary       = onSurface;
+  static const Color primaryLight      = Color(0xFFEADDFF);
+  static const Color primaryDark       = primaryContainer;
+  static const Color primaryGlow       = Color(0x336366F1);
+  static const Color successLight      = successSurface;
+  static const Color warningLight      = warningSurface;
+  static const Color errorLight        = errorSurface;
+  static const Color infoLight         = infoSurface;
 }

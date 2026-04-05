@@ -22,7 +22,7 @@ type roleModel struct {
 	ID          uuid.UUID         `gorm:"type:uuid;primaryKey"`
 	Name        string            `gorm:"uniqueIndex;not null"`
 	Description string
-	Permissions []permissionModel `gorm:"many2many:role_permissions;"`
+	Permissions []permissionModel `gorm:"many2many:role_permissions;joinForeignKey:role_id;joinReferences:permission_id"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -34,7 +34,7 @@ type userModel struct {
 	Name      string         `gorm:"not null"`
 	Email     string         `gorm:"uniqueIndex;not null"`
 	Password  string         `gorm:"not null"`
-	Roles     []roleModel    `gorm:"many2many:user_roles;"`
+	Roles     []roleModel    `gorm:"many2many:user_roles;joinForeignKey:user_id;joinReferences:role_id"`
 	Active    bool           `gorm:"default:true"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

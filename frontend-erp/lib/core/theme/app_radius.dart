@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 
-/// Border radius consistentes en toda la app.
+/// Escala de radios — "slightly sharp edge" según el design system
+/// md = 0.375rem ≈ 6px | xl = 0.75rem ≈ 12px
 abstract class AppRadius {
-  static const double xs  = 4.0;
-  static const double sm  = 6.0;
-  static const double md  = 8.0;
-  static const double lg  = 12.0;
-  static const double xl  = 16.0;
-  static const double xl2 = 24.0;
+  static const double xs   = 2.0;
+  static const double sm   = 4.0;
+  static const double md   = 6.0;   // botones, inputs, chips
+  static const double lg   = 8.0;
+  static const double xl   = 12.0;  // cards, modales
+  static const double xl2  = 16.0;
   static const double full = 999.0;
 
-  static const BorderRadius cardRadius    = BorderRadius.all(Radius.circular(lg));
-  static const BorderRadius buttonRadius  = BorderRadius.all(Radius.circular(md));
-  static const BorderRadius inputRadius   = BorderRadius.all(Radius.circular(md));
-  static const BorderRadius chipRadius    = BorderRadius.all(Radius.circular(full));
-  static const BorderRadius dialogRadius  = BorderRadius.all(Radius.circular(xl));
+  static const BorderRadius card    = BorderRadius.all(Radius.circular(xl));
+  static const BorderRadius button  = BorderRadius.all(Radius.circular(md));
+  static const BorderRadius input   = BorderRadius.all(Radius.circular(md));
+  static const BorderRadius chip    = BorderRadius.all(Radius.circular(full));
+  static const BorderRadius dialog  = BorderRadius.all(Radius.circular(xl));
+  static const BorderRadius listItem = BorderRadius.all(Radius.circular(md));
+
+  // Alias para compatibilidad
+  static const BorderRadius cardRadius   = card;
+  static const BorderRadius buttonRadius = button;
+  static const BorderRadius inputRadius  = input;
+  static const BorderRadius chipRadius   = chip;
+  static const BorderRadius dialogRadius = dialog;
 }

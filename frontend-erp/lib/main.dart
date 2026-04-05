@@ -1,26 +1,41 @@
 import 'package:flutter/material.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/app_theme_preset.dart';
 import 'features/identity/auth/domain/auth_model.dart';
 import 'features/identity/auth/presentation/login/login_page.dart';
 import 'features/identity/auth/presentation/splash/splash_page.dart';
 import 'features/dashboard/dashboard_page.dart';
+import 'features/identity/users/presentation/users_page.dart';
+import 'features/identity/roles/presentation/roles_page.dart';
+import 'features/identity/permissions/presentation/permissions_page.dart';
+import 'features/settings/data/theme_storage.dart';
+import 'features/settings/presentation/theme_controller.dart';
+import 'features/settings/presentation/theme_settings_page.dart';
 import 'shared/widgets/layout/app_shell.dart';
 import 'shared/widgets/layout/app_sidebar.dart';
 
-void main() => runApp(const VbErpApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final themeController = ThemeController(storage: ThemeStorage());
+  await themeController.init();
+  runApp(VbErpApp(themeController: themeController));
+}
 
 class VbErpApp extends StatelessWidget {
-  const VbErpApp({super.key});
+  const VbErpApp({super.key, required this.themeController});
+  final ThemeController themeController;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VB-ERP',
-      debugShowCheckedModeBanner: false,
-      theme:     AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark, // dark por defecto
-      home: const _AppRouter(),
+    return ListenableBuilder(
+      listenable: themeController,
+      builder: (_, __) => MaterialApp(
+        title: 'VB-ERP',
+        debugShowCheckedModeBanner: false,
+        theme:     themeController.themeData,
+        darkTheme: themeController.themeData,
+        themeMode: themeController.mode,
+        home: _AppRouter(themeController: themeController),
+      ),
     );
   }
 }
@@ -28,7 +43,8 @@ class VbErpApp extends StatelessWidget {
 // ── Router de la app ──────────────────────────────────────────────────────────
 
 class _AppRouter extends StatefulWidget {
-  const _AppRouter();
+  const _AppRouter({required this.themeController});
+  final ThemeController themeController;
   @override
   State<_AppRouter> createState() => _AppRouterState();
 }
@@ -47,6 +63,7 @@ class _AppRouterState extends State<_AppRouter> {
   void _logout() =>
       setState(() { _tokens = null; _screen = _Screen.login; });
 
+  // Agrego botón de apariencia en las acciones del topbar
   @override
   Widget build(BuildContext context) {
     return switch (_screen) {
@@ -65,9 +82,22 @@ class _AppRouterState extends State<_AppRouter> {
           userRole:          _tokens!.user.roles.firstOrNull ?? '',
           userPermissions:   _tokens!.user.permissions,
           notificationCount: 3,
-          onNavigate: (route) =>
-              setState(() => _currentRoute = route),
-          onUserTap: _logout,
+          onNavigate: (route) => setState(() => _currentRoute = route),
+          onUserTap:  _logout,
+          actions: [
+            IconButton(
+              icon:    const Icon(Icons.palette_outlined),
+              tooltip: 'Apariencia',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ThemeSettingsPage(
+                    controller: widget.themeController,
+                  ),
+                ),
+              ),
+            ),
+          ],
           child: _buildPage(_currentRoute),
         ),
     };
@@ -75,18 +105,22 @@ class _AppRouterState extends State<_AppRouter> {
 
   Widget _buildPage(String route) {
     return switch (route) {
-      '/dashboard' => DashboardPage(user: _tokens!.user),
-      _            => _ComingSoon(route: route),
+      '/dashboard'            => DashboardPage(user: _tokens!.user),
+      '/identity/users'       => const UsuariosPage(),
+      '/identity/roles'       => const RolesPage(),
+      '/identity/permissions' => const PermisosPage(),
+      _                       => _ComingSoon(route: route),
     };
   }
 
   String _routeTitle(String route) {
     const map = {
-      '/dashboard':          'Dashboard',
-      '/identity/users':     'Usuarios',
-      '/identity/roles':     'Roles',
-      '/inventory/products': 'Productos',
-      '/billing/invoices':   'Facturas',
+      '/dashboard':             'Dashboard',
+      '/identity/users':        'Usuarios',
+      '/identity/roles':        'Roles',
+      '/identity/permissions':  'Permisos',
+      '/inventory/products':    'Productos',
+      '/billing/invoices':      'Facturas',
     };
     return map[route] ?? route;
   }
@@ -99,7 +133,7 @@ enum _Screen { splash, login, app }
 List<SidebarItem> _buildSidebarItems(List<String> perms) => [
   const SidebarItem(id: 'dashboard', label: 'Dashboard',
       icon: Icons.dashboard_outlined, route: '/dashboard'),
-  SidebarItem(id: 'identity', label: 'Usuarios', icon: Icons.people_outline,
+  SidebarItem(id: 'identity', label: 'Identidad', icon: Icons.people_outline,
     children: [
       const SidebarItem(id: 'users',       label: 'Usuarios',  icon: Icons.person_outline,  route: '/identity/users',       requiredPermission: 'identity:users:read'),
       const SidebarItem(id: 'roles',       label: 'Roles',     icon: Icons.shield_outlined, route: '/identity/roles',       requiredPermission: 'identity:roles:read'),

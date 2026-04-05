@@ -65,7 +65,7 @@ func (r *userRepository) List(ctx context.Context, page sharedDomain.PageRequest
 
 	r.db.WithContext(ctx).Model(&userModel{}).Where("deleted_at IS NULL").Count(&total)
 	err := r.db.WithContext(ctx).
-		Preload("Roles").
+		Preload("Roles.Permissions").
 		Where("deleted_at IS NULL").
 		Offset(page.Offset()).Limit(page.Limit).
 		Find(&models).Error

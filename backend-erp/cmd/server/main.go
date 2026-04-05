@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/vctr/vb-erp/internal/config"
 	identityHTTP "github.com/vctr/vb-erp/internal/identity/delivery/http"
 	"github.com/vctr/vb-erp/internal/identity/delivery/middleware"
@@ -32,15 +34,33 @@ func main() {
 	// ── Identity module — wiring ──────────────────────────────────────────────
 	jwtManager   := jwt.NewManager(cfg.JWT.Secret, cfg.JWT.ExpiryHours)
 	userRepo     := persistence.NewUserRepository(db)
+	roleRepo     := persistence.NewRoleRepository(db)
+	permRepo     := persistence.NewPermissionRepository(db)
 	tokenRepo    := persistence.NewRefreshTokenRepository(db)
+
 	authUC       := usecase.NewAuthUsecase(userRepo, tokenRepo, jwtManager)
+	usersUC      := usecase.NewUsersUsecase(userRepo)
+	rolesUC      := usecase.NewRolesUsecase(roleRepo)
+	permsUC      := usecase.NewPermissionsUsecase(permRepo)
+
 	authHandler  := identityHTTP.NewAuthHandler(authUC)
+	usersHandler := identityHTTP.NewUsersHandler(usersUC)
+	rolesHandler := identityHTTP.NewRolesHandler(rolesUC)
+	permsHandler := identityHTTP.NewPermissionsHandler(permsUC)
 	authMW       := middleware.NewAuthMiddleware(jwtManager)
 
 	// ── HTTP server ───────────────────────────────────────────────────────────
 	app := fiber.New(fiber.Config{AppName: "VB-ERP API v1"})
 
-	identityHTTP.RegisterRoutes(app, authHandler, authMW)
+	// Middleware
+	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
+	}))
+
+	identityHTTP.RegisterRoutes(app, authHandler, usersHandler, rolesHandler, permsHandler, authMW)
 
 	log.Printf("server starting on :%s", cfg.AppPort)
 	if err := app.Listen(":" + cfg.AppPort); err != nil {

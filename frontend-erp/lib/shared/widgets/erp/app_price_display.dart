@@ -44,7 +44,7 @@ class AppPriceDisplay extends StatelessWidget {
           children: [
             Text(
               _fmt(amount),
-              style: mainStyle.copyWith(color: color ?? AppColors.textPrimary),
+              style: mainStyle.copyWith(color: color ?? AppColors.onSurface),
             ),
             if (originalPrice != null) ...[
               const SizedBox(width: AppSpacing.sm),

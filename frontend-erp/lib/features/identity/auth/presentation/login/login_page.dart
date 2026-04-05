@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../core/theme/app_typography.dart';
+import '../../../../../core/config/env.dart';
 import '../../domain/auth_model.dart';
-import '../../data/auth_mock_repository.dart';
+import '../../data/auth_repository.dart';
+import '../../data/auth_storage.dart';
 import 'login_controller.dart';
 import 'login_form.dart';
 
@@ -24,7 +26,10 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _controller = LoginController(
-      repository: AuthMockRepository(),
+      repository: AuthRepository(
+        baseUrl: Env.apiBaseUrl,
+        storage: AuthStorage(),
+      ),
     )..addListener(_onStateChange);
   }
 
@@ -87,7 +92,7 @@ class _WideLayout extends StatelessWidget {
         SizedBox(
           width: 480,
           child: Container(
-            color: AppColors.surface,
+            color: AppColors.surfaceLow,
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xl4),

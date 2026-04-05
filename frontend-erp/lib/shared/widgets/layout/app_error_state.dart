@@ -37,7 +37,7 @@ class AppErrorState extends StatelessWidget {
                 label: 'Reintentar',
                 onPressed: onRetry,
                 icon: Icons.refresh,
-                variant: AppButtonVariant.outline,
+                variant: AppButtonVariant.secondary,
               ),
             ],
           ],

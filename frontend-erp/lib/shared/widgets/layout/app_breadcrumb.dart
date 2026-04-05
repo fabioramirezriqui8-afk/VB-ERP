@@ -32,7 +32,7 @@ class AppBreadcrumb extends StatelessWidget {
             isLast || item.route == null
                 ? Text(item.label,
                     style: AppTypography.labelMd.copyWith(
-                      color: isLast ? AppColors.textPrimary : AppColors.textSecondary,
+                      color: isLast ? AppColors.onSurface : AppColors.textSecondary,
                     ))
                 : InkWell(
                     onTap: () => onNavigate?.call(item.route!),

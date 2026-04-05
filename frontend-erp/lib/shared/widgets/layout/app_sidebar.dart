@@ -75,14 +75,18 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   bool _hasAccess(SidebarItem item) {
+    // Si es un grupo, es visible solo si al menos uno de sus hijos es accesible
+    if (item.hasChildren) {
+      return item.children.any(_hasAccess);
+    }
+
     if (item.requiredPermission == null) return true;
     return widget.userPermissions.contains(item.requiredPermission);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg     = AppColors.sidebarBg;
+    final bg = Theme.of(context).colorScheme.surface;
     final w      = widget.isCollapsed ? widget.collapsedWidth : widget.width;
 
     return AnimatedContainer(
@@ -166,14 +170,16 @@ class _SidebarHeader extends StatelessWidget {
                   : child ??
                       Text(
                         'VB-ERP',
-                        style: AppTypography.h3.copyWith(color: AppColors.white),
+                        style: AppTypography.h3.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
             ),
           ),
           IconButton(
             icon: Icon(
               isCollapsed ? Icons.menu_open : Icons.menu,
-              color: Colors.white70,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
             onPressed: onToggle,
             tooltip: isCollapsed ? 'Expandir' : 'Colapsar',
@@ -203,10 +209,10 @@ class _SidebarTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = AppColors.primary;
-    final textColor   = isActive ? activeColor : AppColors.textSecondary;
+    final activeColor = Theme.of(context).colorScheme.primary;
+    final textColor   = isActive ? activeColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
     final bgColor     = isActive
-        ? AppColors.sidebarActive
+        ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
         : Colors.transparent;
 
     return Tooltip(
@@ -294,7 +300,13 @@ class _SidebarGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasActiveChild =
         item.children.any((c) => c.route == currentRoute);
-    final textColor = hasActiveChild ? AppColors.primary : AppColors.textSecondary;
+    final filteredChildren = item.children.where(_hasAccess).toList();
+    if (filteredChildren.isEmpty) return const SizedBox.shrink();
+
+    final cs = Theme.of(context).colorScheme;
+    final textColor = hasActiveChild
+        ? cs.primary
+        : cs.onSurface.withOpacity(0.6);
 
     return Column(
       children: [
@@ -314,7 +326,7 @@ class _SidebarGroup extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: hasActiveChild
-                    ? AppColors.primary.withOpacity(0.1)
+                    ? cs.primary.withOpacity(0.1)
                     : Colors.transparent,
               ),
               child: Row(
@@ -333,7 +345,7 @@ class _SidebarGroup extends StatelessWidget {
                       isExpanded
                           ? Icons.keyboard_arrow_down
                           : Icons.keyboard_arrow_right,
-                      color: AppColors.textDisabled,
+                      color: cs.onSurface.withOpacity(0.3),
                       size: 18,
                     ),
                   ],
@@ -350,8 +362,7 @@ class _SidebarGroup extends StatelessWidget {
             curve: Curves.easeInOut,
             child: isExpanded
                 ? Column(
-                    children: item.children
-                        .where(_hasAccess)
+                    children: filteredChildren
                         .map((child) => _SidebarTile(
                               item:        child,
                               isCollapsed: false,
@@ -414,26 +425,38 @@ class SidebarUserFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary,
-              backgroundImage:
-                  avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-              child: avatarUrl == null
-                  ? Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: cs.primary.withOpacity(0.2), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.primary.withOpacity(0.1),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: cs.primaryContainer,
+                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          color: cs.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
             ),
             if (!isCollapsed) ...[
               const SizedBox(width: AppSpacing.md),
@@ -441,28 +464,35 @@ class SidebarUserFooter extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      name,
-                      style: AppTypography.labelMd.copyWith(
-                        color: Colors.white,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      role,
-                      style: AppTypography.caption.copyWith(
-                        color: Colors.white54,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text(name,
+                        style: AppTypography.labelMd.copyWith(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis),
+                    Text(_mapRole(role),
+                        style: AppTypography.caption.copyWith(
+                          color: cs.onSurface.withOpacity(0.5),
+                        ),
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
-              const Icon(Icons.more_vert, color: Colors.white38, size: 18),
+              Icon(Icons.unfold_more_rounded, color: cs.onSurface.withOpacity(0.3), size: 18),
             ],
           ],
         ),
       ),
     );
+  }
+
+  String _mapRole(String roleId) {
+    switch (roleId.toLowerCase()) {
+      case 'super_admin':        return 'Administrador';
+      case 'sales_agent':       return 'Agente de Ventas';
+      case 'warehouse_operator': return 'Operador Almacén';
+      case 'admin':              return 'Administrador';
+      default:                   return roleId.replaceAll('_', ' ').toUpperCase();
+    }
   }
 }

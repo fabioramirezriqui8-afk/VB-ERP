@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 
@@ -10,8 +9,7 @@ class AppTabItem {
   final int? badge;
 }
 
-/// Tab bar estilizado para secciones dentro de una pantalla.
-/// Uso: Factura > [Detalle] [Pagos] [Historial]
+/// Tab bar estilizado — usa colorScheme del tema activo (responde al panel de apariencia)
 class AppTabBar extends StatelessWidget {
   const AppTabBar({
     super.key,
@@ -24,16 +22,18 @@ class AppTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return TabBar(
-      controller:       controller,
-      isScrollable:     tabs.length > 4,
-      labelStyle:       AppTypography.labelMd,
+      controller:           controller,
+      isScrollable:         tabs.length > 4,
+      labelStyle:           AppTypography.labelMd,
       unselectedLabelStyle: AppTypography.labelMd,
-      labelColor:       AppColors.primary,
-      unselectedLabelColor: AppColors.textSecondary,
-      indicatorColor:   AppColors.primary,
-      indicatorWeight:  2,
-      dividerColor:     AppColors.border,
+      labelColor:           cs.primary,
+      unselectedLabelColor: cs.onSurface.withOpacity(0.5),
+      indicatorColor:       cs.primary,
+      indicatorWeight:      2,
+      dividerColor:         cs.outline.withOpacity(0.15),
       tabs: tabs.map((t) => Tab(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -60,15 +60,16 @@ class _TabBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.15),
+        color:        cs.primary.withOpacity(0.15),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         '$count',
-        style: AppTypography.labelSm.copyWith(color: AppColors.primary),
+        style: AppTypography.labelSm.copyWith(color: cs.primary),
       ),
     );
   }

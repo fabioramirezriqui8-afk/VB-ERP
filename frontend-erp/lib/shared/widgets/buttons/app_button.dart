@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../feedback/app_loading_indicator.dart';
 
-enum AppButtonVariant { primary, secondary, outline, ghost, danger }
+enum AppButtonVariant { primary, secondary, ghost, danger }
 enum AppButtonSize    { sm, md, lg }
 
 class AppButton extends StatelessWidget {
@@ -11,10 +12,10 @@ class AppButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
-    this.variant  = AppButtonVariant.primary,
-    this.size     = AppButtonSize.md,
+    this.variant     = AppButtonVariant.primary,
+    this.size        = AppButtonSize.md,
     this.icon,
-    this.isLoading = false,
+    this.isLoading   = false,
     this.isFullWidth = false,
   });
 
@@ -28,77 +29,126 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = isLoading
-        ? const AppLoadingIndicator(size: 18, color: Colors.white)
+    final content = isLoading
+        ? AppLoadingIndicator(size: _iconSize, color: _fgColor)
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: _iconSize),
+                Icon(icon, size: _iconSize, color: _fgColor),
                 const SizedBox(width: AppSpacing.sm),
               ],
-              Text(label),
+              Text(label, style: TextStyle(fontSize: _fontSize,
+                  fontWeight: FontWeight.w500, color: _fgColor)),
             ],
           );
 
-    final btn = switch (variant) {
-      AppButtonVariant.primary   => ElevatedButton(onPressed: isLoading ? null : onPressed, style: _primaryStyle(context), child: child),
-      AppButtonVariant.secondary => ElevatedButton(onPressed: isLoading ? null : onPressed, style: _secondaryStyle(context), child: child),
-      AppButtonVariant.outline   => OutlinedButton(onPressed: isLoading ? null : onPressed, style: _outlineStyle(context), child: child),
-      AppButtonVariant.ghost     => TextButton(onPressed: isLoading ? null : onPressed, style: _ghostStyle(context), child: child),
-      AppButtonVariant.danger    => ElevatedButton(onPressed: isLoading ? null : onPressed, style: _dangerStyle(context), child: child),
-    };
-
+    Widget btn = _buildButton(context, content);
     return isFullWidth ? SizedBox(width: double.infinity, child: btn) : btn;
   }
 
+  Widget _buildButton(BuildContext context, Widget content) {
+    final padding = EdgeInsets.symmetric(
+      horizontal: _hPad, vertical: _vPad,
+    );
+
+    switch (variant) {
+      case AppButtonVariant.primary:
+        return _GradientButton(
+          onPressed: isLoading ? null : onPressed,
+          padding:   padding,
+          child:     content,
+        );
+
+      case AppButtonVariant.secondary:
+        return OutlinedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            side: BorderSide(color: AppColors.outlineVariant.withOpacity(0.20)),
+            padding: padding,
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.button),
+          ),
+          child: content,
+        );
+
+      case AppButtonVariant.ghost:
+        return TextButton(
+          onPressed: isLoading ? null : onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.secondary,
+            padding: padding,
+          ),
+          child: content,
+        );
+
+      case AppButtonVariant.danger:
+        return _GradientButton(
+          onPressed: isLoading ? null : onPressed,
+          padding:   padding,
+          colors:    [AppColors.errorSurface, const Color(0xFF7F1D1D)],
+          child:     content,
+        );
+    }
+  }
+
+  Color get _fgColor => switch (variant) {
+    AppButtonVariant.primary   => AppColors.onPrimary,
+    AppButtonVariant.secondary => AppColors.primary,
+    AppButtonVariant.ghost     => AppColors.secondary,
+    AppButtonVariant.danger    => AppColors.error,
+  };
+
   double get _iconSize => switch (size) {
-    AppButtonSize.sm => 14,
-    AppButtonSize.md => 16,
-    AppButtonSize.lg => 18,
+    AppButtonSize.sm => 14, AppButtonSize.md => 16, AppButtonSize.lg => 18,
   };
-
-  EdgeInsets get _padding => switch (size) {
-    AppButtonSize.sm => const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    AppButtonSize.md => const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    AppButtonSize.lg => const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-  };
-
   double get _fontSize => switch (size) {
-    AppButtonSize.sm => 12,
-    AppButtonSize.md => 14,
-    AppButtonSize.lg => 16,
+    AppButtonSize.sm => 12, AppButtonSize.md => 14, AppButtonSize.lg => 16,
   };
+  double get _hPad => switch (size) {
+    AppButtonSize.sm => 12, AppButtonSize.md => 20, AppButtonSize.lg => 28,
+  };
+  double get _vPad => switch (size) {
+    AppButtonSize.sm => 8, AppButtonSize.md => 12, AppButtonSize.lg => 16,
+  };
+}
 
-  ButtonStyle _base() => ButtonStyle(
-    padding: WidgetStatePropertyAll(_padding),
-    textStyle: WidgetStatePropertyAll(TextStyle(fontSize: _fontSize, fontWeight: FontWeight.w500)),
-  );
+/// Botón con gradiente violeta — el CTA principal del design system
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.onPressed,
+    required this.child,
+    required this.padding,
+    this.colors,
+  });
 
-  ButtonStyle _primaryStyle(BuildContext ctx) => ElevatedButton.styleFrom(
-    backgroundColor: AppColors.primary,
-    foregroundColor: AppColors.white,
-    elevation: 0,
-  ).merge(_base());
+  final VoidCallback? onPressed;
+  final Widget child;
+  final EdgeInsets padding;
+  final List<Color>? colors;
 
-  ButtonStyle _secondaryStyle(BuildContext ctx) => ElevatedButton.styleFrom(
-    backgroundColor: AppColors.secondary,
-    foregroundColor: AppColors.white,
-    elevation: 0,
-  ).merge(_base());
+  @override
+  Widget build(BuildContext context) {
+    final gradient = colors != null
+        ? LinearGradient(colors: colors!)
+        : AppColors.primaryGradient;
 
-  ButtonStyle _outlineStyle(BuildContext ctx) => OutlinedButton.styleFrom(
-    foregroundColor: AppColors.primary,
-    side: const BorderSide(color: AppColors.primary),
-  ).merge(_base());
-
-  ButtonStyle _ghostStyle(BuildContext ctx) => TextButton.styleFrom(
-    foregroundColor: AppColors.primary,
-  ).merge(_base());
-
-  ButtonStyle _dangerStyle(BuildContext ctx) => ElevatedButton.styleFrom(
-    backgroundColor: AppColors.error,
-    foregroundColor: AppColors.white,
-    elevation: 0,
-  ).merge(_base());
+    return Material(
+      color:        Colors.transparent,
+      borderRadius: AppRadius.button,
+      child: InkWell(
+        onTap:        onPressed,
+        borderRadius: AppRadius.button,
+        splashColor:  AppColors.primaryFixedVariant.withOpacity(0.3),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient:     onPressed != null ? gradient : null,
+            color:        onPressed == null ? AppColors.surfaceHigh : null,
+            borderRadius: AppRadius.button,
+          ),
+          child: Padding(padding: padding, child: child),
+        ),
+      ),
+    );
+  }
 }

@@ -16,11 +16,13 @@ func New(cfg *config.Config) *mongo.Database {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Mongo.URI))
 	if err != nil {
-		log.Fatalf("mongo: connection failed: %v", err)
+		log.Printf("mongo: connection failed (%v) — continuing without mongo", err)
+		return nil
 	}
 
 	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatalf("mongo: ping failed: %v", err)
+		log.Printf("mongo: ping failed (%v) — continuing without mongo", err)
+		return nil
 	}
 
 	log.Println("mongo: connected")

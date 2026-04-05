@@ -33,10 +33,14 @@ class AppFilterBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             // Búsqueda
-            Expanded(
+            SizedBox(
+              width: 300, // minimum responsive width
               child: AppTextField(
                 hint:          searchHint,
                 controller:    searchController,
@@ -54,7 +58,7 @@ class AppFilterBar extends StatelessWidget {
               ),
             ),
             if (onAdvancedFilter != null) ...[
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               _FilterButton(
                 onTap:        onAdvancedFilter!,
                 hasFilters:   activeFilters.isNotEmpty,
@@ -62,9 +66,9 @@ class AppFilterBar extends StatelessWidget {
               ),
             ],
             if (actions.isNotEmpty) ...[
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               ...actions.map((a) => Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.sm),
+                padding: const EdgeInsets.only(left: AppSpacing.xs),
                 child: a,
               )),
             ],
