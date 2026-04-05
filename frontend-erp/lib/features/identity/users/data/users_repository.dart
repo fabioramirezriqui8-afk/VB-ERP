@@ -29,10 +29,25 @@ class UsersRepository {
     }
 
     final body = jsonDecode(response.body);
-    final data = body['data'] ?? {};
-    final List items = data['items'] ?? [];
+    if (body['success'] != true) {
+      throw Exception('API error: ${body['message'] ?? response.body}');
+    }
 
-    return items.map((json) => UsuarioModel.fromJson(json as Map<String, dynamic>)).toList();
+    final data = body['data'];
+    if (data == null || data is! Map) return [];
+    
+    final itemsJson = data['items'];
+    if (itemsJson == null || itemsJson is! List) return [];
+
+    final result = <UsuarioModel>[];
+    for (var j in itemsJson) {
+      try {
+        result.add(UsuarioModel.fromJson(j as Map<String, dynamic>));
+      } catch (e) {
+        print('Error parsing user record: $e');
+      }
+    }
+    return result;
   }
 
   Future<void> createUser({

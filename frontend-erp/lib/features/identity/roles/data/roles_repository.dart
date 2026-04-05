@@ -29,9 +29,24 @@ class RolesRepository {
     }
 
     final body = jsonDecode(response.body);
-    final data = body['data'] ?? {};
-    final List items = data['items'] ?? [];
+    if (body['success'] != true) {
+      throw Exception('API error: ${body['message'] ?? response.body}');
+    }
 
-    return items.map((json) => RolModel.fromJson(json as Map<String, dynamic>)).toList();
+    final data = body['data'];
+    if (data == null || data is! Map) return [];
+
+    final itemsJson = data['items'];
+    if (itemsJson == null || itemsJson is! List) return [];
+
+    final result = <RolModel>[];
+    for (var j in itemsJson) {
+      try {
+        result.add(RolModel.fromJson(j as Map<String, dynamic>));
+      } catch (e) {
+        print('Error parsing role record: $e');
+      }
+    }
+    return result;
   }
 }

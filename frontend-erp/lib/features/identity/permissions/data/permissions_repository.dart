@@ -30,7 +30,21 @@ class PermissionsRepository {
       throw Exception('Error cargando permisos: ${res.body}');
     }
     final body = jsonDecode(res.body);
-    final List data = body['data'] ?? [];
-    return data.map((j) => PermissionModel.fromJson(j as Map<String, dynamic>)).toList();
+    if (body['success'] != true) {
+      throw Exception('API error: ${body['message'] ?? res.body}');
+    }
+
+    final data = body['data'];
+    if (data == null || data is! List) return [];
+
+    final result = <PermissionModel>[];
+    for (var j in data) {
+      try {
+        result.add(PermissionModel.fromJson(j as Map<String, dynamic>));
+      } catch (e) {
+        print('Error parsing permission: $e');
+      }
+    }
+    return result;
   }
 }

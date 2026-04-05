@@ -24,7 +24,7 @@ class AppTableColumn<T> {
 
 /// Tabla genérica reutilizable para cualquier módulo del ERP.
 /// Soporta: scroll horizontal, paginación, selección, loading, vacío.
-class AppTable<T> extends StatelessWidget {
+class AppTable<T> extends StatefulWidget {
   const AppTable({
     super.key,
     required this.columns,
@@ -38,7 +38,6 @@ class AppTable<T> extends StatelessWidget {
     this.emptyTitle   = 'Sin resultados',
     this.emptyDescription,
     this.emptyIcon    = Icons.table_rows_outlined,
-    // paginación
     this.totalItems   = 0,
     this.currentPage  = 1,
     this.pageSize     = 20,
@@ -50,19 +49,13 @@ class AppTable<T> extends StatelessWidget {
   final List<T> rows;
   final bool isLoading;
   final void Function(T row)? onRowTap;
-
-  // selección
   final Set<T> selectedRows;
   final void Function(T row, bool selected)? onSelectRow;
   final void Function(bool selectAll)? onSelectAll;
   final bool showCheckbox;
-
-  // estado vacío
   final String emptyTitle;
   final String? emptyDescription;
   final IconData emptyIcon;
-
-  // paginación
   final int totalItems;
   final int currentPage;
   final int pageSize;
@@ -70,57 +63,91 @@ class AppTable<T> extends StatelessWidget {
   final bool showPagination;
 
   @override
+  State<AppTable<T>> createState() => _AppTableState<T>();
+}
+
+class _AppTableState<T> extends State<AppTable<T>> {
+  final ScrollController _vScroll = ScrollController();
+  final ScrollController _hScroll = ScrollController();
+
+  @override
+  void dispose() {
+    _vScroll.dispose();
+    _hScroll.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Expanded(child: _buildTable(context)),
-        if (showPagination && totalItems > 0)
+        if (widget.showPagination && widget.totalItems > 0)
           _AppTablePagination(
-            totalItems:    totalItems,
-            currentPage:   currentPage,
-            pageSize:      pageSize,
-            onPageChanged: onPageChanged,
+            totalItems:    widget.totalItems,
+            currentPage:   widget.currentPage,
+            pageSize:      widget.pageSize,
+            onPageChanged: widget.onPageChanged,
           ),
       ],
     );
   }
 
   Widget _buildTable(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return const Center(child: AppLoadingIndicator(size: 36));
     }
 
-    if (rows.isEmpty) {
+    if (widget.rows.isEmpty) {
       return AppEmptyState(
-        title:       emptyTitle,
-        description: emptyDescription,
-        icon:        emptyIcon,
+        title:       widget.emptyTitle,
+        description: widget.emptyDescription,
+        icon:        widget.emptyIcon,
       );
     }
 
-    return Scrollbar(
-      thumbVisibility: true,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width,
-          ),
-          child: Column(
-            children: [
-              _buildHeader(context),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: rows.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) => _buildRow(context, rows[i], i),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Enforce a minimum width of 1000px to ensure 'Expanded' cells have finite space.
+        final double tableWidth = constraints.maxWidth > 1000 ? constraints.maxWidth : 1000;
+
+        return Scrollbar(
+          controller: _vScroll,
+          thumbVisibility: true,
+          child: Scrollbar(
+            controller: _hScroll,
+            thumbVisibility: true,
+            notificationPredicate: (n) => n.depth == 1,
+            child: SingleChildScrollView(
+              controller: _vScroll,
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                controller: _hScroll,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: tableWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(context),
+                      const Divider(height: 1),
+                      ...List.generate(widget.rows.length, (i) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildRow(context, widget.rows[i], i),
+                            const Divider(height: 1),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -134,13 +161,13 @@ class AppTable<T> extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (showCheckbox)
+          if (widget.showCheckbox)
             Checkbox(
-              value: rows.isNotEmpty && selectedRows.length == rows.length,
+              value: widget.rows.isNotEmpty && widget.selectedRows.length == widget.rows.length,
               tristate: true,
-              onChanged: (v) => onSelectAll?.call(v ?? false),
+              onChanged: (v) => widget.onSelectAll?.call(v ?? false),
             ),
-          ...columns.map((col) => _cellWrapper(
+          ...widget.columns.map((col) => _cellWrapper(
             col,
             Text(col.label, style: AppTypography.labelMd),
           )),
@@ -150,11 +177,11 @@ class AppTable<T> extends StatelessWidget {
   }
 
   Widget _buildRow(BuildContext context, T row, int index) {
-    final isSelected = selectedRows.contains(row);
+    final isSelected = widget.selectedRows.contains(row);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
-      onTap: onRowTap != null ? () => onRowTap!(row) : null,
+      onTap: widget.onRowTap != null ? () => widget.onRowTap!(row) : null,
       child: Container(
         color: isSelected
             ? AppColors.primary.withOpacity(0.06)
@@ -167,12 +194,12 @@ class AppTable<T> extends StatelessWidget {
         ),
         child: Row(
           children: [
-            if (showCheckbox)
+            if (widget.showCheckbox)
               Checkbox(
                 value: isSelected,
-                onChanged: (v) => onSelectRow?.call(row, v ?? false),
+                onChanged: (v) => widget.onSelectRow?.call(row, v ?? false),
               ),
-            ...columns.map((col) => _cellWrapper(col, col.builder(row))),
+            ...widget.columns.map((col) => _cellWrapper(col, col.builder(row))),
           ],
         ),
       ),
